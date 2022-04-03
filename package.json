@@ -3,6 +3,7 @@
     "version": "0.1.0+sha.49bb92a8",
     "description": "semver bump from git and patch tool",
     "main": "dist/index.min.js",
+    "bin": "dist/index.min.js",
     "files": [
         "dist/*.js"
     ],
