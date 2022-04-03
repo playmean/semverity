@@ -1,0 +1,46 @@
+{
+    "name": "semverity",
+    "version": "0.0.0",
+    "description": "semver bump from git and patch tool",
+    "main": "dist/index.min.js",
+    "files": [
+        "dist/*.js"
+    ],
+    "scripts": {
+        "build": "tsc --noEmit && esbuild --platform=node --target=node16 --bundle --minify --outfile=dist/index.min.js --define:__VERSION__=\\\"$(node dist/index.min.js bump)\\\" src/main.ts",
+        "build:dev": "esbuild --log-level=error --platform=node --target=node16 --bundle --outfile=dist/index.js --define:__VERSION__=\\\"$npm_package_version\\\" src/main.ts",
+        "release": "npm run build && sh ./tools/release.sh",
+        "start": "npm run build:dev && node dist/index.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/playmean/semverity.git"
+    },
+    "keywords": [
+        "semver",
+        "bump",
+        "git",
+        "version"
+    ],
+    "author": "playmean",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/playmean/semverity/issues"
+    },
+    "homepage": "https://github.com/playmean/semverity#readme",
+    "dependencies": {
+        "@types/yargs": "^17.0.10",
+        "semver": "^7.3.5",
+        "shvl": "^2.0.3",
+        "simple-git": "^3.5.0",
+        "yargs": "^17.4.0"
+    },
+    "devDependencies": {
+        "@trivago/prettier-plugin-sort-imports": "^3.2.0",
+        "@types/node": "^17.0.23",
+        "@types/semver": "^7.3.9",
+        "esbuild": "^0.14.29",
+        "prettier": "^2.6.1",
+        "typescript": "^4.6.3"
+    }
+}
