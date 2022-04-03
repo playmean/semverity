@@ -1,5 +1,5 @@
 /*!
- * semverity v0.0.0
+ * semverity v0.1.0+sha.49bb92a8
  * (c) 2021 Aleksey Korolev
  * Released under the MIT License.
  */
