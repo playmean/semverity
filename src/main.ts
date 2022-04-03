@@ -1,14 +1,14 @@
 import { readFile, writeFile } from 'fs/promises';
-import validSemver from 'semver/functions/valid';
+import { SemVer } from 'semver';
+import parseSemver from 'semver/functions/parse';
 import yargs, { Options, PositionalOptions } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
 import { commitChanges, getLastCommitHash } from './git';
 import {
-    SemVersion,
+    getShaFromVersion,
     getVersionFromJsonFile,
     makeVersionFromHistory,
-    parseSemVersion,
 } from './version';
 
 const appName = 'semverity';
@@ -49,34 +49,31 @@ declare type AppArguments = {
 };
 
 async function getVersion(args: AppArguments) {
-    let inputVersion;
+    let semver: SemVer | null;
 
     if (args.semver) {
-        inputVersion = validSemver(args.semver);
+        semver = parseSemver(args.semver);
     } else {
-        const readVersion = await getVersionFromJsonFile(args.from, args.fromPath);
+        const version = await getVersionFromJsonFile(args.from, args.fromPath);
 
-        inputVersion = validSemver(readVersion);
+        semver = parseSemver(version);
     }
 
-    if (inputVersion === null) {
+    if (semver === null) {
         throw new Error('invalid semver passed');
     }
 
-    return {
-        version: inputVersion,
-        semver: parseSemVersion(inputVersion),
-    };
+    return semver;
 }
 
-async function bumpVersion(semver: SemVersion) {
+async function bumpVersion(semver: SemVer, fromHash?: string) {
     const lastCommitHash = await getLastCommitHash().catch(() => {
         throw new Error('not enough commits to build version');
     });
-    const lastSemver = await makeVersionFromHistory(semver);
+    const lastSemver = await makeVersionFromHistory(semver, fromHash);
     const shaPart = `sha.${lastCommitHash.substring(0, 8)}`;
 
-    return `${lastSemver.join('.')}+${shaPart}`;
+    return `${lastSemver.version}+${shaPart}`;
 }
 
 async function patchVersion(filePath: string, version: string, newVersion: string) {
@@ -99,10 +96,11 @@ yargs(hideBin(process.argv))
                 .option('from', optionFrom)
                 .option('from-path', optionFromPath),
         async (args) => {
-            const { semver } = await getVersion(args);
-            const version = await bumpVersion(semver);
+            const semver = await getVersion(args);
+            const hash = getShaFromVersion(semver);
+            const newVersion = await bumpVersion(semver, hash);
 
-            process.stdout.write(version);
+            process.stdout.write(newVersion);
         }
     )
     .command<AppArguments>(
@@ -117,13 +115,14 @@ yargs(hideBin(process.argv))
                 .option('files', optionFiles)
                 .option('commit', optionCommit),
         async (args) => {
-            const { semver, version } = await getVersion(args);
-            const newVersion = await bumpVersion(semver);
+            const semver = await getVersion(args);
+            const hash = getShaFromVersion(semver);
+            const newVersion = await bumpVersion(semver, hash);
 
             let patchedCount = 0;
 
             for (const filePath of args.files) {
-                const patchResult = await patchVersion(filePath, version, newVersion);
+                const patchResult = await patchVersion(filePath, semver.raw, newVersion);
 
                 patchedCount += patchResult ? 1 : 0;
             }

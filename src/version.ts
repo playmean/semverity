@@ -1,16 +1,9 @@
 import { readFile } from 'fs/promises';
+import { SemVer } from 'semver';
 import { get as shvlGet } from 'shvl';
 
 import { parseCommit } from './commit';
 import { getCommitMessages } from './git';
-
-export declare type SemVersion = [number, number, number];
-
-export function parseSemVersion(input: string): SemVersion {
-    const [major, minor, patch] = input.split('.');
-
-    return [Number(major), Number(minor), Number(patch)];
-}
 
 export async function getVersionFromJsonFile(filePath: string, objectPath: string) {
     const fileBody = await readFile(filePath, 'utf8');
@@ -22,10 +15,8 @@ export async function getVersionFromJsonFile(filePath: string, objectPath: strin
     return typeof foundEntry === 'string' ? foundEntry : '';
 }
 
-export async function makeVersionFromHistory(input: SemVersion, from?: string) {
-    const [major, minor, patch] = input;
-
-    const log = await getCommitMessages(from);
+export async function makeVersionFromHistory(semver: SemVer, fromHash?: string) {
+    const log = await getCommitMessages(fromHash);
 
     let upMajor = false;
     let upMinor = false;
@@ -51,9 +42,15 @@ export async function makeVersionFromHistory(input: SemVersion, from?: string) {
         } catch {}
     }
 
-    if (upMajor) return [major + 1, 0, 0];
-    if (upMinor) return [major, minor + 1, 0];
-    if (upPatch) return [major, minor, patch + 1];
+    if (upMajor) return semver.inc('major');
+    if (upMinor) return semver.inc('minor');
+    if (upPatch) return semver.inc('patch');
 
-    return [major, minor, patch];
+    return semver;
+}
+
+export function getShaFromVersion(semver: SemVer) {
+    const [, hash = undefined] = semver.raw.match(/sha\.(\w+)/i) || [];
+
+    return hash;
 }
