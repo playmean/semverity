@@ -73,12 +73,12 @@ async function bumpVersion(semver: SemVer, fromHash?: string) {
     const lastSemver = await makeVersionFromHistory(semver, fromHash);
     const shaPart = `sha.${lastCommitHash.substring(0, 8)}`;
 
-    return `${lastSemver.version}+${shaPart}`;
+    return parseSemver(`${lastSemver.version}+${shaPart}`)!;
 }
 
-async function patchVersion(filePath: string, version: string, newVersion: string) {
+async function patchVersion(filePath: string, version: SemVer, newVersion: SemVer) {
     const fileBody = await readFile(filePath, 'utf8');
-    const patchedBody = fileBody.replaceAll(version, newVersion);
+    const patchedBody = fileBody.replaceAll(version.raw, newVersion.raw);
 
     await writeFile(filePath, patchedBody);
 
@@ -100,7 +100,7 @@ yargs(hideBin(process.argv))
             const hash = getShaFromVersion(semver);
             const newVersion = await bumpVersion(semver, hash);
 
-            process.stdout.write(newVersion);
+            process.stdout.write(newVersion.raw);
         }
     )
     .command<AppArguments>(
@@ -122,7 +122,7 @@ yargs(hideBin(process.argv))
             let patchedCount = 0;
 
             for (const filePath of args.files) {
-                const patchResult = await patchVersion(filePath, semver.raw, newVersion);
+                const patchResult = await patchVersion(filePath, semver, newVersion);
 
                 patchedCount += patchResult ? 1 : 0;
             }
@@ -132,7 +132,7 @@ yargs(hideBin(process.argv))
             );
 
             if (args.commit) {
-                await commitChanges(args.files, args.commit, newVersion);
+                await commitChanges(args.files, args.commit, newVersion.raw);
             }
         }
     )

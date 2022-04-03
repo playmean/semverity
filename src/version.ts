@@ -1,5 +1,6 @@
 import { readFile } from 'fs/promises';
 import { SemVer } from 'semver';
+import parseSemver from 'semver/functions/parse';
 import { get as shvlGet } from 'shvl';
 
 import { parseCommit } from './commit';
@@ -16,6 +17,8 @@ export async function getVersionFromJsonFile(filePath: string, objectPath: strin
 }
 
 export async function makeVersionFromHistory(semver: SemVer, fromHash?: string) {
+    semver = parseSemver(semver.version)!;
+
     const log = await getCommitMessages(fromHash);
 
     let upMajor = false;
