@@ -3,8 +3,9 @@ import { SemVer } from 'semver';
 import parseSemver from 'semver/functions/parse';
 import { get as shvlGet } from 'shvl';
 
+import { getFileWithOptions } from './arguments';
 import { parseCommit } from './commit';
-import { getCommitMessages } from './git';
+import { getCommitMessages, getLastCommitHash } from './git';
 
 export async function getVersionFromJsonFile(filePath: string, objectPaths: string[]) {
     const fileBody = await readFile(filePath, 'utf8');
@@ -60,4 +61,34 @@ export function getShaFromVersion(semver: SemVer) {
     const [, hash = undefined] = semver.raw.match(/sha\.(\w+)/i) || [];
 
     return hash;
+}
+
+export async function getInputVersion(fromPath: string, inputVersion?: string) {
+    let semver: SemVer | null;
+
+    if (inputVersion) {
+        semver = parseSemver(inputVersion);
+    } else {
+        const { filePath, objectPaths } = getFileWithOptions(fromPath, 'version');
+
+        const version = await getVersionFromJsonFile(filePath, objectPaths);
+
+        semver = parseSemver(version);
+    }
+
+    if (semver === null) {
+        throw new Error('invalid semver passed');
+    }
+
+    return semver;
+}
+
+export async function bumpVersion(semver: SemVer, fromHash?: string) {
+    const lastCommitHash = await getLastCommitHash().catch(() => {
+        throw new Error('not enough commits to build version');
+    });
+    const lastSemver = await makeVersionFromHistory(semver, fromHash);
+    const shaPart = `sha.${lastCommitHash.substring(0, 8)}`;
+
+    return parseSemver(`${lastSemver.version}+${shaPart}`)!;
 }

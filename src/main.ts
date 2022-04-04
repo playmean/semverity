@@ -1,33 +1,16 @@
-import yargs, { Options, PositionalOptions } from 'yargs';
+import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
+import {
+    AppArguments,
+    optionCommit,
+    optionFiles,
+    optionFrom,
+    positionalSemver,
+} from './arguments';
 import { commandBump } from './commands/bump';
 import { commandPatch } from './commands/patch';
 import { appName } from './constants';
-import { AppArguments } from './types';
-
-const positionalSemver: PositionalOptions = {
-    type: 'string',
-    describe: 'initial version',
-};
-
-const optionFrom: Options = {
-    type: 'string',
-    alias: 'f',
-    describe:
-        'file to grab version from (optionally dot-notated path to version in json object: file.json:meta.version)',
-    default: 'package.json:version',
-};
-const optionFiles: Options = {
-    type: 'array',
-    alias: 'o',
-    describe: 'files to patch version',
-    default: ['package.json:version', 'package-lock.json:version,packages..version'],
-};
-const optionCommit: Options = {
-    type: 'string',
-    describe: 'commmit type to save',
-};
 
 yargs(hideBin(process.argv))
     .command<AppArguments>(

@@ -3,17 +3,16 @@ import { readFile, writeFile } from 'fs/promises';
 import { SemVer } from 'semver';
 import { set as shvlSet } from 'shvl';
 
-import { getFileWithOptions } from '@/args';
+import { AppArguments, getFileWithOptions } from '@/arguments';
 import { commitChanges } from '@/git';
 import { checkFileAccessible, parseJsonOrNull } from '@/helpers';
-import { bumpVersion, getVersion } from '@/shared';
-import { AppArguments } from '@/types';
-import { getShaFromVersion } from '@/version';
+import { bumpVersion, getInputVersion, getShaFromVersion } from '@/version';
 
 export async function commandPatch(args: AppArguments) {
-    const semver = await getVersion(args);
+    const semver = await getInputVersion(args.from, args.semver);
     const hash = getShaFromVersion(semver);
     const newVersion = await bumpVersion(semver, hash);
+
     const outputfiles = args.files.map((outputFile) =>
         getFileWithOptions(outputFile, 'version')
     );
@@ -30,7 +29,7 @@ export async function commandPatch(args: AppArguments) {
         patchedCount += patchResult ? 1 : 0;
     }
 
-    process.stdout.write(`${patchedCount} file(s) pathed to version ${newVersion}\n`);
+    process.stdout.write(`${patchedCount} file(s) patched to version ${newVersion}\n`);
 
     if (args.commit) {
         await commitChanges(
