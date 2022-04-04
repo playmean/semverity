@@ -46,15 +46,20 @@ declare type AppArguments = {
     commit: string;
 };
 
+declare type FileWithOptions = {
+    filePath: string;
+    objectPath: string;
+};
+
 async function getVersion(args: AppArguments) {
     let semver: SemVer | null;
 
     if (args.semver) {
         semver = parseSemver(args.semver);
     } else {
-        const { filePath, option } = getFilePathWithOption(args.from, 'version');
+        const { filePath, objectPath } = getFileWithOptions(args.from, 'version');
 
-        const version = await getVersionFromJsonFile(filePath, option);
+        const version = await getVersionFromJsonFile(filePath, objectPath);
 
         semver = parseSemver(version);
     }
@@ -109,12 +114,12 @@ async function patchVersion(
     return fileBody !== patchedBody;
 }
 
-function getFilePathWithOption(input: string, defOption = '') {
-    const [filePath, option = defOption] = input.split(':');
+function getFileWithOptions(input: string, defObjectPath = ''): FileWithOptions {
+    const [filePath, objectPath = defObjectPath] = input.split(':');
 
     return {
         filePath,
-        option,
+        objectPath,
     };
 }
 
@@ -155,18 +160,20 @@ yargs(hideBin(process.argv))
             const semver = await getVersion(args);
             const hash = getShaFromVersion(semver);
             const newVersion = await bumpVersion(semver, hash);
+            const outputfiles = args.files.map((outputFile) =>
+                getFileWithOptions(outputFile, 'version')
+            );
 
             let patchedCount = 0;
 
-            for (const outputFile of args.files) {
-                const { filePath, option } = getFilePathWithOption(outputFile, 'version');
+            for (const { filePath, objectPath } of outputfiles) {
                 const fileAccessible = await checkFileAccessible(filePath);
 
                 if (!fileAccessible) continue;
 
                 const patchResult = await patchVersion(
                     filePath,
-                    option,
+                    objectPath,
                     semver,
                     newVersion
                 );
@@ -179,7 +186,11 @@ yargs(hideBin(process.argv))
             );
 
             if (args.commit) {
-                await commitChanges(args.files, args.commit, newVersion.raw);
+                await commitChanges(
+                    outputfiles.map((file) => file.filePath),
+                    args.commit,
+                    newVersion.raw
+                );
             }
         }
     )
