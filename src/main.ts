@@ -1,6 +1,8 @@
+import detectIndent from 'detect-indent';
 import { readFile, writeFile } from 'fs/promises';
 import { SemVer } from 'semver';
 import parseSemver from 'semver/functions/parse';
+import { set as shvlSet } from 'shvl';
 import yargs, { Options, PositionalOptions } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
@@ -21,13 +23,9 @@ const positionalSemver: PositionalOptions = {
 const optionFrom: Options = {
     type: 'string',
     alias: 'f',
-    describe: 'file to grab version from',
+    describe:
+        'file to grab version from (optionally dot-notated path to version in json object can be specified as filename.json:meta.version)',
     default: 'package.json',
-};
-const optionFromPath: Options = {
-    type: 'string',
-    describe: 'dot-notated path to version in json object',
-    default: 'version',
 };
 const optionFiles: Options = {
     type: 'array',
@@ -43,7 +41,6 @@ const optionCommit: Options = {
 declare type AppArguments = {
     semver?: string;
     from: string;
-    fromPath: string;
     files: string[];
     commit: string;
 };
@@ -54,7 +51,9 @@ async function getVersion(args: AppArguments) {
     if (args.semver) {
         semver = parseSemver(args.semver);
     } else {
-        const version = await getVersionFromJsonFile(args.from, args.fromPath);
+        const { filePath, option } = getFilePathWithOption(args.from, 'version');
+
+        const version = await getVersionFromJsonFile(filePath, option);
 
         semver = parseSemver(version);
     }
@@ -76,13 +75,38 @@ async function bumpVersion(semver: SemVer, fromHash?: string) {
     return parseSemver(`${lastSemver.version}+${shaPart}`)!;
 }
 
-async function patchVersion(filePath: string, version: SemVer, newVersion: SemVer) {
+async function patchVersion(
+    filePath: string,
+    objectPath: string,
+    version: SemVer,
+    newVersion: SemVer
+) {
     const fileBody = await readFile(filePath, 'utf8');
-    const patchedBody = fileBody.replaceAll(version.raw, newVersion.raw);
+
+    let patchedBody = fileBody;
+
+    if (objectPath === '') {
+        patchedBody = fileBody.replaceAll(version.raw, newVersion.raw);
+    } else {
+        const indent = detectIndent(fileBody).indent;
+        const parsedBody = JSON.parse(fileBody);
+        const modifiedBody = shvlSet(parsedBody, objectPath, newVersion.raw);
+
+        patchedBody = JSON.stringify(modifiedBody, null, indent) + '\n';
+    }
 
     await writeFile(filePath, patchedBody);
 
     return fileBody !== patchedBody;
+}
+
+function getFilePathWithOption(input: string, defOption = '') {
+    const [filePath, option = defOption] = input.split(':');
+
+    return {
+        filePath,
+        option,
+    };
 }
 
 yargs(hideBin(process.argv))
@@ -93,8 +117,7 @@ yargs(hideBin(process.argv))
             child
                 .usage(`Usage: ${appName} bump [options]`)
                 .positional('semver', positionalSemver)
-                .option('from', optionFrom)
-                .option('from-path', optionFromPath),
+                .option('from', optionFrom),
         async (args) => {
             const semver = await getVersion(args);
             const hash = getShaFromVersion(semver);
@@ -111,7 +134,6 @@ yargs(hideBin(process.argv))
                 .usage(`Usage: ${appName} patch [options]`)
                 .positional('semver', positionalSemver)
                 .option('from', optionFrom)
-                .option('from-path', optionFromPath)
                 .option('files', optionFiles)
                 .option('commit', optionCommit),
         async (args) => {
@@ -121,8 +143,14 @@ yargs(hideBin(process.argv))
 
             let patchedCount = 0;
 
-            for (const filePath of args.files) {
-                const patchResult = await patchVersion(filePath, semver, newVersion);
+            for (const outputFile of args.files) {
+                const { filePath, option } = getFilePathWithOption(outputFile, 'version');
+                const patchResult = await patchVersion(
+                    filePath,
+                    option,
+                    semver,
+                    newVersion
+                );
 
                 patchedCount += patchResult ? 1 : 0;
             }
