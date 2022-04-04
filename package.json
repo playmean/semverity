@@ -1,6 +1,6 @@
 {
     "name": "semverity",
-    "version": "0.1.2+sha.f6dc7ec7",
+    "version": "0.2.0+sha.b41012ca",
     "description": "semver bump from git and patch tool",
     "main": "dist/index.min.js",
     "bin": "dist/index.min.js",
