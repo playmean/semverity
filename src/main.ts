@@ -1,5 +1,6 @@
 import detectIndent from 'detect-indent';
-import { readFile, writeFile } from 'fs/promises';
+import { constants } from 'fs';
+import { access, readFile, writeFile } from 'fs/promises';
 import { SemVer } from 'semver';
 import parseSemver from 'semver/functions/parse';
 import { set as shvlSet } from 'shvl';
@@ -117,6 +118,12 @@ function getFilePathWithOption(input: string, defOption = '') {
     };
 }
 
+async function checkFileAccessible(filePath: string) {
+    return await access(filePath, constants.F_OK)
+        .then(() => true)
+        .catch(() => false);
+}
+
 yargs(hideBin(process.argv))
     .command<AppArguments>(
         'bump [semver]',
@@ -153,6 +160,10 @@ yargs(hideBin(process.argv))
 
             for (const outputFile of args.files) {
                 const { filePath, option } = getFilePathWithOption(outputFile, 'version');
+                const fileAccessible = await checkFileAccessible(filePath);
+
+                if (!fileAccessible) continue;
+
                 const patchResult = await patchVersion(
                     filePath,
                     option,
