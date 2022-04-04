@@ -6,14 +6,18 @@ import { get as shvlGet } from 'shvl';
 import { parseCommit } from './commit';
 import { getCommitMessages } from './git';
 
-export async function getVersionFromJsonFile(filePath: string, objectPath: string) {
+export async function getVersionFromJsonFile(filePath: string, objectPaths: string[]) {
     const fileBody = await readFile(filePath, 'utf8');
 
     const object = JSON.parse(fileBody);
 
-    const foundEntry = shvlGet(object, objectPath, '');
+    const foundPath = objectPaths.find(
+        (objectPath) => typeof shvlGet(object, objectPath) === 'string'
+    );
 
-    return typeof foundEntry === 'string' ? foundEntry : '';
+    if (!foundPath) return '';
+
+    return shvlGet(object, foundPath) as string;
 }
 
 export async function makeVersionFromHistory(semver: SemVer, fromHash?: string) {

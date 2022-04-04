@@ -41,7 +41,7 @@ Your package have version is `0.0.1` and commit `feat: some feature` with sha `1
 ```sh
 semverity patch
 
-cat package.json # or package-lock.json
+cat package.json # and package-lock.json pathed by default
 {
     ...
     "version": "0.1.0+sha.1234abcd",
@@ -49,10 +49,10 @@ cat package.json # or package-lock.json
 }
 ```
 
-You can specify custom list of files (and dot-notated path to key to be patched after **:** symbol):
+You can specify custom list of files (and dot-notated comma-separated object paths to be patched after **:** symbol):
 
 ```sh
-semverity patch --files package.json package-lock.json info.json:meta.version copyright.txt
+semverity patch --files package.json package-lock.json:version,packages..version info.json:meta.version copyright.txt
 ```
 
 It will also replace all previous `*0.0.1*` strings into `0.1.0+sha.1234abcd` in copyright.txt because it's not json-parseable.

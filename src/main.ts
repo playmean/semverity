@@ -22,7 +22,7 @@ const optionFiles: Options = {
     type: 'array',
     alias: 'o',
     describe: 'files to patch version',
-    default: ['package.json:version', 'package-lock.json:version'],
+    default: ['package.json:version', 'package-lock.json:version,packages..version'],
 };
 const optionCommit: Options = {
     type: 'string',

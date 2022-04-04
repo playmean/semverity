@@ -1,13 +1,13 @@
 export declare type FileWithOptions = {
     filePath: string;
-    objectPath: string;
+    objectPaths: string[];
 };
 
 export function getFileWithOptions(input: string, defObjectPath = ''): FileWithOptions {
-    const [filePath, objectPath = defObjectPath] = input.split(':');
+    const [filePath, objectPaths = defObjectPath] = input.split(':');
 
     return {
         filePath,
-        objectPath,
+        objectPaths: objectPaths.split(','),
     };
 }

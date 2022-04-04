@@ -12,9 +12,9 @@ export async function getVersion(args: AppArguments) {
     if (args.semver) {
         semver = parseSemver(args.semver);
     } else {
-        const { filePath, objectPath } = getFileWithOptions(args.from, 'version');
+        const { filePath, objectPaths } = getFileWithOptions(args.from, 'version');
 
-        const version = await getVersionFromJsonFile(filePath, objectPath);
+        const version = await getVersionFromJsonFile(filePath, objectPaths);
 
         semver = parseSemver(version);
     }

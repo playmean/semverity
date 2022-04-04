@@ -20,12 +20,12 @@ export async function commandPatch(args: AppArguments) {
 
     let patchedCount = 0;
 
-    for (const { filePath, objectPath } of outputfiles) {
+    for (const { filePath, objectPaths } of outputfiles) {
         const fileAccessible = await checkFileAccessible(filePath);
 
         if (!fileAccessible) continue;
 
-        const patchResult = await patchVersion(filePath, objectPath, semver, newVersion);
+        const patchResult = await patchVersion(filePath, objectPaths, semver, newVersion);
 
         patchedCount += patchResult ? 1 : 0;
     }
@@ -43,7 +43,7 @@ export async function commandPatch(args: AppArguments) {
 
 async function patchVersion(
     filePath: string,
-    objectPath: string,
+    objectPaths: string[],
     version: SemVer,
     newVersion: SemVer
 ) {
@@ -52,11 +52,14 @@ async function patchVersion(
 
     let patchedBody = fileBody;
 
-    if (objectPath === '' || parsedBody === null) {
+    if (objectPaths[0] === '' || parsedBody === null) {
         patchedBody = fileBody.replaceAll(version.raw, newVersion.raw);
     } else {
         const indent = detectIndent(fileBody).indent;
-        const modifiedBody = shvlSet(parsedBody, objectPath, newVersion.raw);
+        const modifiedBody = objectPaths.reduce(
+            (result, objectPath) => shvlSet(result, objectPath, newVersion.raw),
+            parsedBody
+        );
 
         patchedBody = JSON.stringify(modifiedBody, null, indent) + '\n';
     }
