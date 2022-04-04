@@ -15,14 +15,14 @@ const optionFrom: Options = {
     type: 'string',
     alias: 'f',
     describe:
-        'file to grab version from (optionally dot-notated path to version in json object can be specified as filename.json:meta.version)',
-    default: 'package.json',
+        'file to grab version from (optionally dot-notated path to version in json object: file.json:meta.version)',
+    default: 'package.json:version',
 };
 const optionFiles: Options = {
     type: 'array',
     alias: 'o',
     describe: 'files to patch version',
-    default: ['package.json', 'package-lock.json'],
+    default: ['package.json:version', 'package-lock.json:version'],
 };
 const optionCommit: Options = {
     type: 'string',
