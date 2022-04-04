@@ -75,6 +75,14 @@ async function bumpVersion(semver: SemVer, fromHash?: string) {
     return parseSemver(`${lastSemver.version}+${shaPart}`)!;
 }
 
+function parseJsonOrNull<T = any>(input: string) {
+    try {
+        return JSON.parse(input) as T;
+    } catch {
+        return null;
+    }
+}
+
 async function patchVersion(
     filePath: string,
     objectPath: string,
@@ -82,14 +90,14 @@ async function patchVersion(
     newVersion: SemVer
 ) {
     const fileBody = await readFile(filePath, 'utf8');
+    const parsedBody = parseJsonOrNull(fileBody);
 
     let patchedBody = fileBody;
 
-    if (objectPath === '') {
+    if (objectPath === '' || parsedBody === null) {
         patchedBody = fileBody.replaceAll(version.raw, newVersion.raw);
     } else {
         const indent = detectIndent(fileBody).indent;
-        const parsedBody = JSON.parse(fileBody);
         const modifiedBody = shvlSet(parsedBody, objectPath, newVersion.raw);
 
         patchedBody = JSON.stringify(modifiedBody, null, indent) + '\n';
