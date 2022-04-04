@@ -2,11 +2,12 @@
 
 VERSION=$(node dist/index.min.js bump)
 
-node dist/index.min.js patch --files package.json package-lock.json tools/copyright.txt
+node dist/index.min.js patch --files package.json package-lock.json copyright.txt
 
-sed -i '1s/^/#!\/usr\/bin\/env node\n/' dist/index.min.js
-
-./tools/copyright.sh
+for filename in ./dist/*.js
+do
+    cat copyright.txt >> ${filename}
+done
 
 git add .
 git commit -m "bump: $VERSION"
