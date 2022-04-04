@@ -10,7 +10,7 @@
     "scripts": {
         "build": "tsc --noEmit && esbuild --platform=node --target=node16 --bundle --minify --outfile=dist/index.min.js --define:__VERSION__=\\\"$(node dist/index.min.js bump)\\\" --banner:js='#!/usr/bin/env node' --footer:js='/*!\n * semverity v0.2.1+sha.edcb63ef\n * (c) 2022-present Aleksey Korolev\n * Released under the MIT License.\n */' src/main.ts",
         "build:dev": "esbuild --log-level=error --platform=node --target=node16 --bundle --outfile=dist/index.js --define:__VERSION__=\\\"$npm_package_version\\\" src/main.ts",
-        "release": "npm run build && node dist/index.min.js patch --files package.json: package-lock.json: copyright.txt dist/index.min.js",
+        "release": "npm run build && node dist/index.min.js patch --files package.json: package-lock.json: copyright.txt dist/index.min.js --commit bump",
         "start": "npm run build:dev && node dist/index.js"
     },
     "repository": {
