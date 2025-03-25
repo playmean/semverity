@@ -6,6 +6,7 @@ import {
     optionCommit,
     optionFiles,
     optionFrom,
+    optionTidy,
     positionalSemver,
 } from './arguments';
 import { commandBump } from './commands/bump';
@@ -20,7 +21,8 @@ yargs(hideBin(process.argv))
             child
                 .usage(`Usage: ${appName} bump [options]`)
                 .positional('semver', positionalSemver)
-                .option('from', optionFrom),
+                .option('from', optionFrom)
+                .option('tidy', optionTidy),
         commandBump
     )
     .command<AppArguments>(
@@ -32,7 +34,8 @@ yargs(hideBin(process.argv))
                 .positional('semver', positionalSemver)
                 .option('from', optionFrom)
                 .option('files', optionFiles)
-                .option('commit', optionCommit),
+                .option('commit', optionCommit)
+                .option('tidy', optionTidy),
         commandPatch
     )
     .usage(`Usage: ${appName} <command>`)

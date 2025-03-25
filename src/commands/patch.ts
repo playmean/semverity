@@ -11,7 +11,7 @@ import { bumpVersion, getInputVersion, getShaFromVersion } from '@/version';
 export async function commandPatch(args: AppArguments) {
     const semver = await getInputVersion(args.from, args.semver);
     const hash = getShaFromVersion(semver);
-    const newVersion = await bumpVersion(semver, hash);
+    const newVersion = await bumpVersion(semver, hash, args.tidy);
 
     const outputfiles = args.files.map((outputFile) =>
         getFileWithOptions(outputFile, 'version')

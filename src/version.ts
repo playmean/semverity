@@ -83,12 +83,16 @@ export async function getInputVersion(fromPath: string, inputVersion?: string) {
     return semver;
 }
 
-export async function bumpVersion(semver: SemVer, fromHash?: string) {
+export async function bumpVersion(semver: SemVer, fromHash?: string, tidy = false) {
     const lastCommitHash = await getLastCommitHash().catch(() => {
         throw new Error('not enough commits to build version');
     });
     const lastSemver = await makeVersionFromHistory(semver, fromHash);
     const shaPart = `sha.${lastCommitHash.substring(0, 8)}`;
+
+    if (tidy) {
+        return parseSemver(lastSemver.version)!;
+    }
 
     return parseSemver(`${lastSemver.version}+${shaPart}`)!;
 }

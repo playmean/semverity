@@ -5,6 +5,7 @@ export declare type AppArguments = {
     from: string;
     files: string[];
     commit: string;
+    tidy?: boolean;
 };
 
 export declare type FileWithOptions = {
@@ -33,6 +34,10 @@ export const optionFiles: Options = {
 export const optionCommit: Options = {
     type: 'string',
     describe: 'commmit type to save',
+};
+export const optionTidy: Options = {
+    type: 'boolean',
+    describe: 'save only 1.2.3 without sha',
 };
 
 export function getFileWithOptions(input: string, defObjectPath = ''): FileWithOptions {
