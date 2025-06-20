@@ -37,13 +37,13 @@ export async function makeVersionFromHistory(semver: SemVer, fromHash?: string) 
             if (commit.isBreaking) {
                 upMajor = true;
 
-                break;
+                continue;
             }
 
             if (commit.type === 'feat') {
                 upMinor = true;
 
-                break;
+                continue;
             }
 
             if (commit.type === 'fix') upPatch = true;
