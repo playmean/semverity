@@ -1,6 +1,6 @@
 {
     "name": "semverity",
-    "version": "0.4.0",
+    "version": "0.4.1+sha.0e274bc8",
     "description": "semver bump from git and patch tool",
     "main": "dist/index.min.js",
     "bin": "dist/index.min.js",
@@ -8,9 +8,9 @@
         "dist/index.min.js"
     ],
     "scripts": {
-        "build": "tsc --noEmit && esbuild --platform=node --target=node16 --bundle --minify --outfile=dist/index.min.js --define:__VERSION__=\\\"$(node dist/index.min.js bump)\\\" --banner:js='#!/usr/bin/env node' --footer:js='/*!\n * semverity v0.4.0\n * (c) 2022-present Aleksey Korolev\n * Released under the MIT License.\n */' src/main.ts",
+        "build": "tsc --noEmit && esbuild --platform=node --target=node16 --bundle --minify --outfile=dist/index.min.js --define:__VERSION__=\\\"$(node dist/index.min.js bump)\\\" --banner:js='#!/usr/bin/env node' --footer:js='/*!\n * semverity\n * (c) 2022-present Aleksey Korolev\n * Released under the MIT License.\n */' src/main.ts",
         "build:dev": "esbuild --log-level=error --platform=node --target=node16 --bundle --outfile=dist/index.js --define:__VERSION__=\\\"$npm_package_version\\\" src/main.ts",
-        "release": "npm run build && node dist/index.min.js patch --files package.json: package-lock.json:version,packages..version dist/index.min.js --tidy --commit bump",
+        "release": "npm run build && node dist/index.min.js patch --files package.json: package-lock.json:version,packages..version dist/index.min.js --commit bump",
         "start": "npm run build:dev && node dist/index.js"
     },
     "repository": {
